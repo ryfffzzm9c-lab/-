@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+  <h1>📦 材料消耗明细</h1>
+  <p>查看各作业项目的材料使用情况</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>🧾 材料消耗记录</h3>
+    <span class="badge badge-blue">{{ rows|length }} 条记录</span>
+  </div>
+  <div class="card-body no-padding">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>单据号</th><th>物码</th><th>名称规格</th>
+            <th>计量单位</th><th style="text-align:right">消耗数量</th>
+            <th style="text-align:right">单价</th>
+            <th style="text-align:right">小计</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td><span class="badge badge-yellow">{{ r.单据号 }}</span></td>
+            <td>{{ r.物码 }}</td>
+            <td>{{ r.名称规格 }}</td>
+            <td><span class="badge badge-blue">{{ r.计量单位 }}</span></td>
+            <td style="text-align:right">{{ r.消耗数量 }}</td>
+            <td style="text-align:right" class="money">¥{{ '%.0f'|format(r.单价|float) }}</td>
+            <td style="text-align:right" class="money">¥{{ '%.0f'|format(r.消耗数量|int * r.单价|float) }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-dim)">📭 暂无材料消耗记录</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

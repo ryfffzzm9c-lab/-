@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+  <h1>{% if mode=='新增' %}➕ 新增作业项目{% else %}✏️ 编辑作业项目{% endif %}</h1>
+  <p>{% if mode=='新增' %}录入新的油水井作业成本数据{% else %}修改已有的成本消耗记录{% endif %}</p>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>单据号 *</label>
+          <input class="form-control" name="单据号" value="{{ row.单据号 if row else '' }}" {{ 'readonly' if row }}>
+        </div>
+        <div class="form-group">
+          <label>预算单位</label>
+          <select class="form-select" name="预算单位">
+            {% for u in units %}
+            <option value="{{ u.单位代码 }}" {{ 'selected' if row and row.预算单位==u.单位代码 }}>{{ u.单位名称 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>井号</label>
+          <select class="form-select" name="井号">
+            {% for w in wells %}
+            <option value="{{ w.井号 }}" {{ 'selected' if row and row.井号==w.井号 }}>{{ w.井号 }} ({{ w.井别 }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>预算金额</label>
+          <input class="form-control" name="预算金额" type="number" step="0.01" value="{{ row.预算金额 if row else '' }}">
+        </div>
+        <div class="form-group"><label>预算人</label><input class="form-control" name="预算人" value="{{ row.预算人 if row else '' }}"></div>
+        <div class="form-group"><label>预算日期</label><input class="form-control" name="预算日期" type="date" value="{{ row.预算日期 if row else '' }}"></div>
+        <div class="form-group"><label>开工日期</label><input class="form-control" name="开工日期" type="date" value="{{ row.开工日期 if row else '' }}"></div>
+        <div class="form-group"><label>完工日期</label><input class="form-control" name="完工日期" type="date" value="{{ row.完工日期 if row else '' }}"></div>
+        <div class="form-group">
+          <label>施工单位</label>
+          <select class="form-select" name="施工单位">
+            {% for c in ctors %}
+            <option value="{{ c.施工单位名称 }}" {{ 'selected' if row and row.施工单位==c.施工单位名称 }}>{{ c.施工单位名称 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group"><label>施工内容</label><input class="form-control" name="施工内容" value="{{ row.施工内容 if row else '' }}"></div>
+        <div class="form-group"><label>材料费</label><input class="form-control" name="材料费" type="number" step="0.01" value="{{ row.材料费 if row else '0' }}"></div>
+        <div class="form-group"><label>人工费</label><input class="form-control" name="人工费" type="number" step="0.01" value="{{ row.人工费 if row else '0' }}"></div>
+        <div class="form-group"><label>设备费</label><input class="form-control" name="设备费" type="number" step="0.01" value="{{ row.设备费 if row else '0' }}"></div>
+        <div class="form-group"><label>其他费用</label><input class="form-control" name="其他费用" type="number" step="0.01" value="{{ row.其他费用 if row else '0' }}"></div>
+        <div class="form-group"><label>结算金额</label><input class="form-control" name="结算金额" type="number" step="0.01" value="{{ row.结算金额 if row else '0' }}"></div>
+        <div class="form-group"><label>结算人</label><input class="form-control" name="结算人" value="{{ row.结算人 if row else '' }}"></div>
+        <div class="form-group"><label>结算日期</label><input class="form-control" name="结算日期" type="date" value="{{ row.结算日期 if row else '' }}"></div>
+      </div>
+      <div style="margin-top:24px;display:flex;gap:12px;">
+        <button class="btn btn-primary" type="submit">💾 保存</button>
+        <a href="/projects" class="btn btn-outline">取消</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

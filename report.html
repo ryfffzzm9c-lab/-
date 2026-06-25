@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+  <h1>📈 成本运行报表</h1>
+  <p>调用存储过程 sp_成本运行情况 生成统计报表</p>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+  {% for cat, msg in messages %}
+  <div class="alert alert-{{ cat }}">{{ msg }}</div>
+  {% endfor %}
+{% endif %}
+{% endwith %}
+
+<div class="card">
+  <div class="card-body">
+    <form method="post">
+      <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr auto;">
+        <div class="form-group">
+          <label>选择单位</label>
+          <select class="form-select" name="单位代码" required>
+            {% for u in units %}
+            <option value="{{ u.单位代码 }}">{{ u.单位名称 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>起始日期</label>
+          <input class="form-control" name="起始日期" type="date" value="2018-01-01" required>
+        </div>
+        <div class="form-group">
+          <label>结束日期</label>
+          <input class="form-control" name="结束日期" type="date" value="2018-12-31" required>
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;">
+          <button class="btn btn-primary" type="submit">🔍 生成报表</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if result %}
+<div class="card report-result">
+  <div class="card-header" style="background:rgba(240,165,0,0.08);">
+    <h3>📋 {{ result.单位名称 }} · {{ result.起始日期 }} ~ {{ result.结束日期 }}</h3>
+  </div>
+  <div class="card-body">
+    <div class="stat-cards" style="grid-template-columns: repeat(5,1fr);">
+      <div class="stat-card card-gold" style="padding:20px;">
+        <div class="stat-label">预算金额</div>
+        <div class="stat-value" style="font-size:22px;margin-top:8px;" class="money">¥{{ '%.0f'|format(result.预算金额|float) }}</div>
+      </div>
+      <div class="stat-card card-blue" style="padding:20px;">
+        <div class="stat-label">结算金额</div>
+        <div class="stat-value" style="font-size:22px;margin-top:8px;" class="money">¥{{ '%.0f'|format(result.结算金额|float) }}</div>
+      </div>
+      <div class="stat-card card-green" style="padding:20px;">
+        <div class="stat-label">入账金额</div>
+        <div class="stat-value" style="font-size:22px;margin-top:8px;" class="money">¥{{ '%.0f'|format(result.入账金额|float) }}</div>
+      </div>
+      <div class="stat-card" style="padding:20px;border-top:3px solid #e67e22;">
+        <div class="stat-label">未结算金额</div>
+        <div class="stat-value" style="font-size:22px;margin-top:8px;color:#e67e22;">¥{{ '%.0f'|format(result.未结算|float) }}</div>
+      </div>
+      <div class="stat-card" style="padding:20px;border-top:3px solid #e74c3c;">
+        <div class="stat-label">未入账金额</div>
+        <div class="stat-value" style="font-size:22px;margin-top:8px;color:#e74c3c;">¥{{ '%.0f'|format(result.未入账|float) }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="card" style="text-align:center;padding:60px 20px;">
+  <div style="font-size:64px;margin-bottom:16px;">🛢️</div>
+  <h3 style="color:var(--text-dim);font-weight:400;">选择单位与日期范围，点击"生成报表"</h3>
+  <p style="color:var(--text-dim);margin-top:8px;font-size:14px;">
+    调用 <code style="background:rgba(240,165,0,0.1);color:var(--gold);padding:2px 8px;border-radius:4px;">EXEC sp_成本运行情况 '单位代码', '起始日期', '结束日期'</code>
+  </p>
+</div>
+{% endif %}
+
+{% endblock %}

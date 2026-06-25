@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header">
+  <h1>📋 作业项目管理</h1>
+  <p>管理油水井作业项目的成本消耗记录</p>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+  {% for cat, msg in messages %}
+  <div class="alert alert-{{ cat }}">{{ msg }}</div>
+  {% endfor %}
+{% endif %}
+{% endwith %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+  <form class="search-box" method="get" style="margin-bottom:0;flex:1;">
+    <input type="text" name="keyword" placeholder="🔍 搜索单据号 / 预算单位 / 施工单位..." value="{{ keyword }}">
+    <button class="btn btn-primary" type="submit">搜索</button>
+    {% if keyword %}<a href="/projects" class="btn btn-outline">清除</a>{% endif %}
+  </form>
+  <a href="/projects/add" class="btn btn-primary" style="margin-left:16px;">＋ 新增项目</a>
+</div>
+
+<div class="card">
+  <div class="card-body no-padding">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>单据号</th><th>预算单位</th><th>井号</th><th>预算金额</th>
+            <th>施工内容</th><th>施工单位</th><th>预算日期</th>
+            <th style="text-align:right">结算金额</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td><span class="badge badge-yellow">{{ r.单据号 }}</span></td>
+            <td>{{ r.预算单位 }}</td>
+            <td>{{ r.井号 }}</td>
+            <td class="money">¥{{ '%.0f'|format(r.预算金额|float) }}</td>
+            <td>{{ r.施工内容 }}</td>
+            <td><span class="badge badge-blue">{{ r.施工单位 }}</span></td>
+            <td>{{ r.预算日期 }}</td>
+            <td style="text-align:right" class="money">¥{{ '%.0f'|format(r.结算金额|float) if r.结算金额 else '—' }}</td>
+            <td>
+              <div class="btn-group">
+                <a href="/projects/edit/{{ r.单据号 }}" class="btn btn-outline btn-sm">✏️</a>
+                <form method="post" action="/projects/delete/{{ r.单据号 }}" style="display:inline" onsubmit="return confirm('确认删除 {{ r.单据号 }}？')">
+                  <button class="btn btn-danger btn-sm">🗑️</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-dim)">
+            📭 暂无数据 — <a href="/projects/add" style="color:var(--gold)">添加第一条记录</a>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

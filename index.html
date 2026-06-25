@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% else %}
+
+<div class="page-header">
+  <h1>📊 系统仪表盘</h1>
+  <p>采油厂油水井作业成本管理概览</p>
+</div>
+
+<!-- 浮动原油滴装饰 -->
+<svg style="position:absolute;right:40px;top:20px;opacity:0.06;pointer-events:none" width="200" height="200" viewBox="0 0 200 200">
+  <circle cx="100" cy="50" r="30" fill="#f0a500"/>
+  <circle cx="60" cy="90" r="18" fill="#f0a500"/>
+  <circle cx="140" cy="80" r="12" fill="#f0a500"/>
+  <circle cx="90" cy="130" r="8" fill="#f0a500"/>
+</svg>
+
+<!-- 统计卡片 -->
+<div class="stat-cards">
+  <div class="stat-card card-gold fade-in">
+    <div class="icon-circle">📋</div>
+    <div class="stat-value">{{ stats['项目数'] }}</div>
+    <div class="stat-label">作业项目总数</div>
+  </div>
+  <div class="stat-card card-blue fade-in">
+    <div class="icon-circle">📦</div>
+    <div class="stat-value">{{ stats['材料记录'] }}</div>
+    <div class="stat-label">材料消耗记录</div>
+  </div>
+  <div class="stat-card card-green fade-in">
+    <div class="icon-circle">🛢️</div>
+    <div class="stat-value">{{ stats['油水井数'] }}</div>
+    <div class="stat-label">油水井数量</div>
+  </div>
+  <div class="stat-card card-purple fade-in">
+    <div class="icon-circle">🏢</div>
+    <div class="stat-value">{{ stats['单位数'] }}</div>
+    <div class="stat-label">组织单位</div>
+  </div>
+</div>
+
+<!-- 图表区 -->
+<div class="chart-row">
+  <div class="chart-panel fade-in">
+    <h4>🏗️ 各施工单位结算金额</h4>
+    <canvas id="chartCost"></canvas>
+  </div>
+  <div class="chart-panel fade-in">
+    <h4>🔧 施工内容分布</h4>
+    <canvas id="chartContent"></canvas>
+  </div>
+</div>
+
+<!-- 最新项目 -->
+<div class="card fade-in">
+  <div class="card-header">
+    <h3>📌 最新作业项目</h3>
+    <a href="/projects" class="btn btn-outline btn-sm">查看全部 →</a>
+  </div>
+  <div class="card-body no-padding">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>单据号</th><th>预算单位</th><th>井号</th><th>施工内容</th>
+            <th style="text-align:right">预算金额</th><th style="text-align:right">结算金额</th>
+            <th>预算日期</th><th>施工单位</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in recent %}
+          <tr>
+            <td><span class="badge badge-yellow">{{ p.单据号 }}</span></td>
+            <td>{{ p.预算单位 }}</td>
+            <td>{{ p.井号 }}</td>
+            <td>{{ p.施工内容 }}</td>
+            <td style="text-align:right" class="money">¥{{ '%.0f'|format(p.预算金额|float) }}</td>
+            <td style="text-align:right" class="money">¥{{ '%.0f'|format(p.结算金额|float) if p.结算金额 else '—' }}</td>
+            <td>{{ p.预算日期 }}</td>
+            <td><span class="badge badge-blue">{{ p.施工单位 }}</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-dim)">暂无数据</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+{% block scripts %}
+{% if not error %}
+<script>
+// 施工单位结算金额 - 横向柱状图
+const ctx1 = document.getElementById('chartCost');
+new Chart(ctx1, {
+  type: 'bar',
+  data: {
+    labels: [{% for d in chart_data %}'{{ d.施工单位 }}',{% endfor %}],
+    datasets: [{
+      label: '结算金额 (元)',
+      data: [{% for d in chart_data %}{{ d.合计 or 0 }},{% endfor %}],
+      backgroundColor: [
+        'rgba(240,165,0,0.7)',
+        'rgba(26,115,232,0.6)',
+        'rgba(39,174,96,0.6)',
+        'rgba(155,89,182,0.6)',
+        'rgba(231,76,60,0.6)'
+      ],
+      borderColor: [
+        '#f0a500','#1a73e8','#27ae60','#9b59b6','#e74c3c'
+      ],
+      borderWidth: 1,
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { color: '#6b7d95', callback: v => '¥' + v.toLocaleString() },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+      },
+      x: {
+        ticks: { color: '#6b7d95' },
+        grid: { display: false }
+      }
+    }
+  }
+});
+
+// 施工内容分布 - 饼图
+const ctx2 = document.getElementById('chartContent');
+new Chart(ctx2, {
+  type: 'doughnut',
+  data: {
+    labels: [{% for d in content_stats %}'{{ d.施工内容 }}',{% endfor %}],
+    datasets: [{
+      data: [{% for d in content_stats %}{{ d.次数 }},{% endfor %}],
+      backgroundColor: [
+        'rgba(240,165,0,0.8)',
+        'rgba(26,115,232,0.7)',
+        'rgba(39,174,96,0.7)',
+        'rgba(155,89,182,0.7)',
+        'rgba(231,76,60,0.7)'
+      ],
+      borderColor: '#122647',
+      borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { color: '#c8d6e5', padding: 16, font: { size: 11 } }
+      }
+    }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}
